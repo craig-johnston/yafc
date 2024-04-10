@@ -14,34 +14,38 @@ namespace YAFC.Blueprints {
         private static readonly byte[] header = { 0x78, 0xDA };
 
         public string ToBpString() {
-            if (InputSystem.Instance.control)
+            if (InputSystem.Instance.control) {
                 return ToJson();
-            var sourceBytes = JsonSerializer.SerializeToUtf8Bytes(this, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull });
-            using var memory = new MemoryStream();
+            }
+
+            byte[] sourceBytes = JsonSerializer.SerializeToUtf8Bytes(this, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull });
+            using MemoryStream memory = new MemoryStream();
             memory.Write(header);
-            using (var compress = new DeflateStream(memory, CompressionLevel.Optimal, true))
+            using (DeflateStream compress = new DeflateStream(memory, CompressionLevel.Optimal, true)) {
                 compress.Write(sourceBytes);
+            }
+
             memory.Write(GetChecksum(sourceBytes, sourceBytes.Length));
             return "0" + Convert.ToBase64String(memory.ToArray());
         }
 
         private byte[] GetChecksum(byte[] buffer, int length) {
             int a = 1, b = 0;
-            for (var counter = 0; counter < length; ++counter) {
-                a = (a + (buffer[counter])) % 65521;
+            for (int counter = 0; counter < length; ++counter) {
+                a = (a + buffer[counter]) % 65521;
                 b = (b + a) % 65521;
             }
-            var checksum = (b * 65536) + a;
-            var intBytes = BitConverter.GetBytes(checksum);
+            int checksum = (b * 65536) + a;
+            byte[] intBytes = BitConverter.GetBytes(checksum);
             Array.Reverse(intBytes);
             return intBytes;
         }
 
         public string ToJson() {
-            var sourceBytes = JsonSerializer.SerializeToUtf8Bytes(this, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull });
-            using var memory = new MemoryStream(sourceBytes);
-            using (var reader = new StreamReader(memory))
-                return reader.ReadToEnd();
+            byte[] sourceBytes = JsonSerializer.SerializeToUtf8Bytes(this, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull });
+            using MemoryStream memory = new MemoryStream(sourceBytes);
+            using StreamReader reader = new StreamReader(memory);
+            return reader.ReadToEnd();
         }
     }
 
@@ -90,7 +94,7 @@ namespace YAFC.Blueprints {
         public BlueprintPosition position { get; set; } = new BlueprintPosition();
         public int direction { get; set; }
         public string recipe { get; set; }
-        [JsonPropertyName("control_behavior")] public BlueprintControlBehaviour controlBehavior { get; set; }
+        [JsonPropertyName("control_behavior")] public BlueprintControlBehavior controlBehavior { get; set; }
         public BlueprintConnection connections { get; set; }
         [JsonPropertyName("request_filters")] public List<BlueprintRequestFilter> requestFilters { get; } = new List<BlueprintRequestFilter>();
         public Dictionary<string, int> items { get; set; }
@@ -103,9 +107,13 @@ namespace YAFC.Blueprints {
         private void ConnectSingle(BlueprintEntity other, bool red = true, bool secondPort = false, bool targetSecond = false) {
             connections ??= new BlueprintConnection();
             BlueprintConnectionPoint port;
-            if (secondPort)
+            if (secondPort) {
                 port = connections.p2 ?? (connections.p2 = new BlueprintConnectionPoint());
-            else port = connections.p1 ?? (connections.p1 = new BlueprintConnectionPoint());
+            }
+            else {
+                port = connections.p1 ?? (connections.p1 = new BlueprintConnectionPoint());
+            }
+
             var list = red ? port.red : port.green;
             list.Add(new BlueprintConnectionData { entityId = other.index, circuitId = targetSecond ? 2 : 1 });
         }
@@ -143,7 +151,7 @@ namespace YAFC.Blueprints {
     }
 
     [Serializable]
-    public class BlueprintControlBehaviour {
+    public class BlueprintControlBehavior {
         public List<BlueprintControlFilter> filters { get; } = new List<BlueprintControlFilter>();
     }
 

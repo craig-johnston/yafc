@@ -32,10 +32,10 @@ namespace YAFC.UI {
             owner = gui;
             if (source != null && gui.isBuilding) {
                 var rect = source.TranslateRect(sourceRect, gui);
-                if (ShoudBuild(source, sourceRect, gui, rect)) {
+                if (ShouldBuild(source, sourceRect, gui, rect)) {
                     var contentSize = contents.CalculateState(width, gui.pixelsPerUnit);
                     var position = CalculatePosition(gui, rect, contentSize);
-                    var parentRect = new Rect(position, contentSize);
+                    Rect parentRect = new Rect(position, contentSize);
                     gui.DrawPanel(parentRect, contents);
                 }
                 else {
@@ -45,14 +45,17 @@ namespace YAFC.UI {
         }
 
         protected abstract Vector2 CalculatePosition(ImGui gui, Rect targetRect, Vector2 contentSize);
-        protected abstract bool ShoudBuild(ImGui source, Rect sourceRect, ImGui parent, Rect parentRect);
+        protected abstract bool ShouldBuild(ImGui source, Rect sourceRect, ImGui parent, Rect parentRect);
         protected abstract void BuildContents(ImGui gui);
     }
 
     public abstract class DropDownPanel : AttachedPanel, IMouseFocus {
         private bool focused;
         protected DropDownPanel(Padding padding, float width) : base(padding, width) { }
-        protected override bool ShoudBuild(ImGui source, Rect sourceRect, ImGui parent, Rect parentRect) => focused;
+        protected override bool ShouldBuild(ImGui source, Rect sourceRect, ImGui parent, Rect parentRect) {
+            return focused;
+        }
+
         public override void SetFocus(ImGui source, Rect rect) {
             InputSystem.Instance.SetMouseFocus(this);
             base.SetFocus(source, rect);
@@ -60,8 +63,10 @@ namespace YAFC.UI {
 
         public bool FilterPanel(IPanel panel) {
             while (panel != null) {
-                if (panel == contents)
+                if (panel == contents) {
                     return true;
+                }
+
                 panel = panel.Parent;
             }
 
@@ -88,7 +93,9 @@ namespace YAFC.UI {
 
         public delegate void Builder(ImGui gui, ref bool closed);
 
-        public void SetPadding(Padding padding) => contents.initialPadding = padding;
+        public void SetPadding(Padding padding) {
+            contents.initialPadding = padding;
+        }
 
         public void SetFocus(ImGui source, Rect rect, GuiBuilder builder, float width = 20f) {
             this.width = width;
@@ -98,18 +105,21 @@ namespace YAFC.UI {
 
         protected override Vector2 CalculatePosition(ImGui gui, Rect targetRect, Vector2 contentSize) {
             var size = gui.contentSize;
-            var targetY = targetRect.Bottom + contentSize.Y > size.Y && targetRect.Y >= contentSize.Y ? targetRect.Y - contentSize.Y : targetRect.Bottom;
-            var x = MathUtils.Clamp(targetRect.X, 0, size.X - contentSize.X);
-            var y = MathUtils.Clamp(targetY, 0, size.Y - contentSize.Y);
+            float targetY = targetRect.Bottom + contentSize.Y > size.Y && targetRect.Y >= contentSize.Y ? targetRect.Y - contentSize.Y : targetRect.Bottom;
+            float x = MathUtils.Clamp(targetRect.X, 0, size.X - contentSize.X);
+            float y = MathUtils.Clamp(targetY, 0, size.Y - contentSize.Y);
             return new Vector2(x, y);
         }
 
         protected override void BuildContents(ImGui gui) {
             gui.boxColor = SchemeColor.PureBackground;
             gui.textColor = SchemeColor.BackgroundText;
-            if (builder != null)
+            if (builder != null) {
                 builder.Invoke(gui);
-            else Close();
+            }
+            else {
+                Close();
+            }
         }
     }
 
@@ -117,10 +127,12 @@ namespace YAFC.UI {
         protected Tooltip(Padding padding, float width) : base(padding, width) {
             contents.mouseCapture = false;
         }
-        protected override bool ShoudBuild(ImGui source, Rect sourceRect, ImGui parent, Rect parentRect) {
+        protected override bool ShouldBuild(ImGui source, Rect sourceRect, ImGui parent, Rect parentRect) {
             var window = source.window;
-            if (InputSystem.Instance.mouseOverWindow != window)
+            if (InputSystem.Instance.mouseOverWindow != window) {
                 return false;
+            }
+
             return parentRect.Contains(parent.mousePosition);
         }
 

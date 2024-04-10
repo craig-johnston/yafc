@@ -10,14 +10,18 @@ namespace YAFC.UI {
         public static readonly IntPtr cursorHorizontalResize = SDL.SDL_CreateSystemCursor(SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_SIZEWE);
         public const byte SEMITRANSPARENT = 100;
 
-        private static SDL.SDL_Color ColorFromHex(int hex) => new SDL.SDL_Color { r = (byte)(hex >> 16), g = (byte)(hex >> 8), b = (byte)hex, a = 255 };
+        private static SDL.SDL_Color ColorFromHex(int hex) {
+            return new SDL.SDL_Color { r = (byte)(hex >> 16), g = (byte)(hex >> 8), b = (byte)hex, a = 255 };
+        }
+
         public static readonly SDL.SDL_Color Black = new SDL.SDL_Color { a = 255 };
         public static readonly SDL.SDL_Color White = new SDL.SDL_Color { r = 255, g = 255, b = 255, a = 255 };
         public static readonly SDL.SDL_Color BlackTransparent = new SDL.SDL_Color { a = SEMITRANSPARENT };
         public static readonly SDL.SDL_Color WhiteTransparent = new SDL.SDL_Color { r = 255, g = 255, b = 255, a = SEMITRANSPARENT };
 
-        public static SchemeColor GetTextColorFromBackgroundColor(SchemeColor color) => (SchemeColor)((int)color & ~3) + 2;
-
+        public static SchemeColor GetTextColorFromBackgroundColor(SchemeColor color) {
+            return (SchemeColor)((int)color & ~3) + 2;
+        }
 
         private static readonly SDL.SDL_Color[] LightModeScheme = {
             default, new SDL.SDL_Color {b = 255, g = 128, a = 60}, ColorFromHex(0x0645AD), ColorFromHex(0x1b5e20), // Special group
@@ -28,6 +32,7 @@ namespace YAFC.UI {
             ColorFromHex(0xff9800), ColorFromHex(0xc66900), Black, BlackTransparent, // Secondary group
             ColorFromHex(0xbf360c), ColorFromHex(0x870000), White, WhiteTransparent, // Error group
             ColorFromHex(0xe4e4e4), ColorFromHex(0xc4c4c4), Black, BlackTransparent, // Grey group
+            ColorFromHex(0xbd33a4), ColorFromHex(0x8b008b), Black, BlackTransparent, // Magenta group
             ColorFromHex(0x6abf69), ColorFromHex(0x388e3c), Black, BlackTransparent, // Green group
         };
 
@@ -40,6 +45,7 @@ namespace YAFC.UI {
             ColorFromHex(0x5b2800), ColorFromHex(0x8c5100), White, WhiteTransparent, // Secondary group
             ColorFromHex(0xbf360c), ColorFromHex(0x870000), White, WhiteTransparent, // Error group
             ColorFromHex(0x343434), ColorFromHex(0x545454), White, WhiteTransparent, // Grey group
+            ColorFromHex(0x8b008b), ColorFromHex(0xbd33a4), Black, BlackTransparent, // Magenta group
             ColorFromHex(0x00600f), ColorFromHex(0x00701a), Black, BlackTransparent, // Green group
         };
 
@@ -48,12 +54,17 @@ namespace YAFC.UI {
         public static void SetColorScheme(bool darkMode) {
             RenderingUtils.darkMode = darkMode;
             SchemeColors = darkMode ? DarkModeScheme : LightModeScheme;
-            var col = darkMode ? (byte)0 : (byte)255;
-            SDL.SDL_SetSurfaceColorMod(CircleSurface, col, col, col);
+            byte col = darkMode ? (byte)0 : (byte)255;
+            _ = SDL.SDL_SetSurfaceColorMod(CircleSurface, col, col, col);
         }
 
-        public static SDL.SDL_Color ToSdlColor(this SchemeColor color) => SchemeColors[(int)color];
-        public static unsafe ref SDL.SDL_Surface AsSdlSurface(IntPtr ptr) => ref Unsafe.AsRef<SDL.SDL_Surface>((void*)ptr);
+        public static SDL.SDL_Color ToSdlColor(this SchemeColor color) {
+            return SchemeColors[(int)color];
+        }
+
+        public static unsafe ref SDL.SDL_Surface AsSdlSurface(IntPtr ptr) {
+            return ref Unsafe.AsRef<SDL.SDL_Surface>((void*)ptr);
+        }
 
         public static readonly IntPtr CircleSurface;
         private static readonly SDL.SDL_Rect CircleTopLeft, CircleTopRight, CircleBottomLeft, CircleBottomRight, CircleTop, CircleBottom, CircleLeft, CircleRight;
@@ -66,29 +77,29 @@ namespace YAFC.UI {
             const int circleSize = 32;
             const float center = (circleSize - 1) / 2f;
 
-            var pixels = (uint*)surface.pixels;
-            for (var x = 0; x < 32; x++) {
-                for (var y = 0; y < 32; y++) {
-                    var dx = (center - x) / center;
-                    var dy = (center - y) / center;
-                    var dist = MathF.Sqrt(dx * dx + dy * dy);
+            uint* pixels = (uint*)surface.pixels;
+            for (int x = 0; x < 32; x++) {
+                for (int y = 0; y < 32; y++) {
+                    float dx = (center - x) / center;
+                    float dy = (center - y) / center;
+                    float dist = MathF.Sqrt((dx * dx) + (dy * dy));
                     *pixels++ = 0xFFFFFF00 | (dist >= 1f ? 0 : (uint)MathUtils.Round(38 * (1f - dist)));
                 }
             }
 
-            const int halfcircle = (circleSize / 2) - 1;
-            const int halfStride = circleSize - halfcircle;
+            const int halfCircle = (circleSize / 2) - 1;
+            const int halfStride = circleSize - halfCircle;
 
-            CircleTopLeft = new SDL.SDL_Rect { x = 0, y = 0, w = halfcircle, h = halfcircle };
-            CircleTopRight = new SDL.SDL_Rect { x = halfStride, y = 0, w = halfcircle, h = halfcircle };
-            CircleBottomLeft = new SDL.SDL_Rect { x = 0, y = halfStride, w = halfcircle, h = halfcircle };
-            CircleBottomRight = new SDL.SDL_Rect { x = halfStride, y = halfStride, w = halfcircle, h = halfcircle };
-            CircleTop = new SDL.SDL_Rect { x = halfcircle, y = 0, w = 2, h = halfcircle };
-            CircleBottom = new SDL.SDL_Rect { x = halfcircle, y = halfStride, w = 2, h = halfcircle };
-            CircleLeft = new SDL.SDL_Rect { x = 0, y = halfcircle, w = halfcircle, h = 2 };
-            CircleRight = new SDL.SDL_Rect { x = halfStride, y = halfcircle, w = halfcircle, h = 2 };
+            CircleTopLeft = new SDL.SDL_Rect { x = 0, y = 0, w = halfCircle, h = halfCircle };
+            CircleTopRight = new SDL.SDL_Rect { x = halfStride, y = 0, w = halfCircle, h = halfCircle };
+            CircleBottomLeft = new SDL.SDL_Rect { x = 0, y = halfStride, w = halfCircle, h = halfCircle };
+            CircleBottomRight = new SDL.SDL_Rect { x = halfStride, y = halfStride, w = halfCircle, h = halfCircle };
+            CircleTop = new SDL.SDL_Rect { x = halfCircle, y = 0, w = 2, h = halfCircle };
+            CircleBottom = new SDL.SDL_Rect { x = halfCircle, y = halfStride, w = 2, h = halfCircle };
+            CircleLeft = new SDL.SDL_Rect { x = 0, y = halfCircle, w = halfCircle, h = 2 };
+            CircleRight = new SDL.SDL_Rect { x = halfStride, y = halfCircle, w = halfCircle, h = 2 };
             CircleSurface = surfacePtr;
-            SDL.SDL_SetSurfaceColorMod(CircleSurface, 0, 0, 0);
+            _ = SDL.SDL_SetSurfaceColorMod(CircleSurface, 0, 0, 0);
         }
 
         public struct BlitMapping {
@@ -115,9 +126,11 @@ namespace YAFC.UI {
         }
 
         public static void GetBorderBatch(SDL.SDL_Rect position, int shadowTop, int shadowSide, int shadowBottom, ref BlitMapping[] result) {
-            if (result == null || result.Length != 8)
+            if (result == null || result.Length != 8) {
                 Array.Resize(ref result, 8);
-            var rect = new SDL.SDL_Rect { h = shadowTop, x = position.x - shadowSide, y = position.y - shadowTop, w = shadowSide };
+            }
+
+            SDL.SDL_Rect rect = new SDL.SDL_Rect { h = shadowTop, x = position.x - shadowSide, y = position.y - shadowTop, w = shadowSide };
             result[0] = new BlitMapping(CircleTopLeft, rect);
             rect.x = position.x;
             rect.w = position.w;

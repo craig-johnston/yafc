@@ -5,7 +5,7 @@ namespace YAFC {
         public const string Github = "https://github.com/have-fun-was-taken/yafc-ce";
 
         public AboutScreen(Window parent) : base(ImGuiUtils.DefaultScreenPadding) {
-            Create("About YAFC", 50, parent);
+            Create("About YAFC-CE", 50, parent);
         }
 
         protected override void BuildContents(ImGui gui) {
@@ -13,6 +13,7 @@ namespace YAFC {
             gui.BuildText("Yet Another Factorio Calculator", Font.header, align: RectAlignment.Middle);
             gui.BuildText("(Community Edition)", align: RectAlignment.Middle);
             gui.BuildText("Copyright 2020-2021 ShadowTheAge", align: RectAlignment.Middle);
+            gui.BuildText("Copyright 2024 YAFC Community", align: RectAlignment.Middle);
             gui.allocator = RectAllocator.LeftAlign;
             gui.AllocateSpacing(1.5f);
             gui.BuildText("This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.", wrap: true);
@@ -70,8 +71,9 @@ namespace YAFC {
         }
 
         private void BuildLink(ImGui gui, string url, string text = null) {
-            if (gui.BuildLink(text ?? url))
+            if (gui.BuildLink(text ?? url)) {
                 Ui.VisitLink(url);
+            }
         }
     }
 }

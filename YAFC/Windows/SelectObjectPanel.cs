@@ -6,57 +6,70 @@ using YAFC.Model;
 using YAFC.UI;
 
 namespace YAFC {
-    public class SelectObjectPanel : PseudoScreen<FactorioObject> {
-        private static readonly SelectObjectPanel Instance = new SelectObjectPanel();
-        private readonly SearchableList<FactorioObject> list;
-        private string header;
-        private Rect searchBox;
-        private bool extendHeader;
-        public SelectObjectPanel() : base(40f) {
+    public abstract class SelectObjectPanel<T> : PseudoScreen<T> {
+        protected readonly SearchableList<FactorioObject> list;
+        protected string header;
+        protected Rect searchBox;
+        protected bool extendHeader;
+
+        protected SelectObjectPanel() : base(40f) {
             list = new SearchableList<FactorioObject>(30, new Vector2(2.5f, 2.5f), ElementDrawer, ElementFilter);
         }
 
-        private bool ElementFilter(FactorioObject data, SearchQuery query) => data.Match(query);
-
-        public static void Select<T>(IEnumerable<T> list, string header, Action<T> select, IComparer<T> ordering, bool allowNone) where T : FactorioObject {
-            MainScreen.Instance.ShowPseudoScreen(Instance);
-            Instance.extendHeader = typeof(T) == typeof(FactorioObject);
-            var data = new List<T>(list);
+        protected void Select<U>(IEnumerable<U> list, string header, Action<U> select, IComparer<U> ordering, Action<T, Action<FactorioObject>> process, bool allowNone) where U : FactorioObject {
+            _ = MainScreen.Instance.ShowPseudoScreen(this);
+            extendHeader = typeof(U) == typeof(FactorioObject);
+            List<U> data = new List<U>(list);
             data.Sort(ordering);
-            if (allowNone)
+            if (allowNone) {
                 data.Insert(0, null);
-            Instance.list.filter = default;
-            Instance.list.data = data;
-            Instance.header = header;
-            Instance.Rebuild();
-            Instance.complete = (selected, x) => {
-                if (x is T t) {
-                    if (ordering is DataUtils.FavouritesComparer<T> favouritesComparer)
-                        favouritesComparer.AddToFavourite(t);
-                    select(t);
+            }
+
+            this.list.filter = default;
+            this.list.data = data;
+            this.header = header;
+            Rebuild();
+            complete = (selected, x) => process(x, x => {
+                if (x is U u) {
+                    if (ordering is DataUtils.FavoritesComparer<U> favoritesComparer) {
+                        favoritesComparer.AddToFavorite(u);
+                    }
+
+                    select(u);
                 }
-                else if (allowNone && selected)
+                else if (allowNone && selected) {
                     select(null);
-            };
+                }
+            });
         }
 
-        public static void Select<T>(IEnumerable<T> list, string header, Action<T> select, bool allowNone = false) where T : FactorioObject => Select(list, header, select, DataUtils.DefaultOrdering, allowNone);
+        protected void Select<U>(IEnumerable<U> list, string header, Action<U> select, Action<T, Action<FactorioObject>> process, bool allowNone = false) where U : FactorioObject {
+            Select(list, header, select, DataUtils.DefaultOrdering, process, allowNone);
+        }
 
         private void ElementDrawer(ImGui gui, FactorioObject element, int index) {
             if (element == null) {
-                if (gui.BuildRedButton(Icon.Close))
-                    CloseWithResult(null);
+                if (gui.BuildRedButton(Icon.Close)) {
+                    CloseWithResult(default);
+                }
             }
             else {
-                if (gui.BuildFactorioObjectButton(element, display: MilestoneDisplay.Contained, extendHeader: extendHeader))
-                    CloseWithResult(element);
+                NonNullElementDrawer(gui, element, index);
             }
+        }
+
+        protected abstract void NonNullElementDrawer(ImGui gui, FactorioObject element, int index);
+
+        private bool ElementFilter(FactorioObject data, SearchQuery query) {
+            return data.Match(query);
         }
 
         public override void Build(ImGui gui) {
             BuildHeader(gui, header);
-            if (gui.BuildSearchBox(list.filter, out var newFilter, "Start typing for search"))
+            if (gui.BuildSearchBox(list.filter, out var newFilter, "Start typing for search")) {
                 list.filter = newFilter;
+            }
+
             searchBox = gui.lastRect;
             list.Build(gui);
         }

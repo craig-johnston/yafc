@@ -17,7 +17,7 @@
         BackgroundTextFaint,
         // Primary group
         Primary,
-        PrimalyAlt,
+        PrimaryAlt,
         PrimaryText,
         PrimaryTextFaint,
         // Secondary group
@@ -35,6 +35,11 @@
         GreyAlt,
         GreyText,
         GreyTextFaint,
+        // Magenta group (indicate overproduction)
+        Magenta,
+        MagentaAlt,
+        MagentaText,
+        MagentaTextFaint,
         // Green group
         Green,
         GreenAlt,

@@ -6,6 +6,8 @@ namespace YAFC.UI {
     public abstract class Window : IDisposable {
         public readonly ImGui rootGui;
         internal IntPtr window;
+        /// <summary>Window icon, singleton so it is reused for all windows</summary>
+        internal static IntPtr icon;
         internal Vector2 contentSize;
         internal uint id;
         internal bool repaintRequired = true;
@@ -33,22 +35,41 @@ namespace YAFC.UI {
         }
 
         internal void Create() {
-            SDL.SDL_SetRenderDrawBlendMode(surface.renderer, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND);
+            SDL.SDL_SetWindowIcon(window, GetIcon());
+
+            _ = SDL.SDL_SetRenderDrawBlendMode(surface.renderer, SDL.SDL_BlendMode.SDL_BLENDMODE_BLEND);
             id = SDL.SDL_GetWindowID(window);
             Ui.CloseWidowOfType(GetType());
             Ui.RegisterWindow(id, this);
             visible = true;
         }
 
+        /// <summary>Load, if needed, the window icon and return its SDL_Surface pointer, or IntPtr.Zero if not loaded due to errors</summary>
+        internal static IntPtr GetIcon() {
+            if (icon == IntPtr.Zero) {
+                icon = SDL_image.IMG_Load("image.ico");
+                if (icon == IntPtr.Zero) {
+                    string error = SDL.SDL_GetError();
+                    Console.WriteLine("Failed to load application icon: " + error);
+                }
+            }
+
+            return icon;
+        }
+
         internal int CalculateUnitsToPixels(int display) {
-            SDL.SDL_GetDisplayDPI(display, out var dpi, out _, out _);
-            SDL.SDL_GetDisplayBounds(display, out var rect);
+            _ = SDL.SDL_GetDisplayDPI(display, out float dpi, out _, out _);
+            _ = SDL.SDL_GetDisplayBounds(display, out var rect);
             // 82x60 is the minimum screen size in units, plus some for borders
-            var desiredUnitsToPixels = dpi == 0 ? 13 : MathUtils.Round(dpi / 6.8f);
-            if (desiredUnitsToPixels * 82f >= rect.w)
+            int desiredUnitsToPixels = dpi == 0 ? 13 : MathUtils.Round(dpi / 6.8f);
+            if (desiredUnitsToPixels * 82f >= rect.w) {
                 desiredUnitsToPixels = MathUtils.Floor(rect.w / 82f);
-            if (desiredUnitsToPixels * 65f >= rect.h)
+            }
+
+            if (desiredUnitsToPixels * 65f >= rect.h) {
                 desiredUnitsToPixels = MathUtils.Floor(rect.h / 65f);
+            }
+
             return desiredUnitsToPixels;
         }
 
@@ -57,8 +78,8 @@ namespace YAFC.UI {
         }
 
         internal void WindowMoved() {
-            var index = SDL.SDL_GetWindowDisplayIndex(window);
-            var u2p = CalculateUnitsToPixels(index);
+            int index = SDL.SDL_GetWindowDisplayIndex(window);
+            int u2p = CalculateUnitsToPixels(index);
             if (u2p != pixelsPerUnit) {
                 pixelsPerUnit = u2p;
                 surface.pixelsPerUnit = pixelsPerUnit;
@@ -71,14 +92,19 @@ namespace YAFC.UI {
         protected virtual void OnRepaint() { }
 
         internal void Render() {
-            if (!repaintRequired && nextRepaintTime > Ui.time)
+            if (!repaintRequired && nextRepaintTime > Ui.time) {
                 return;
-            if (nextRepaintTime <= Ui.time)
+            }
+
+            if (nextRepaintTime <= Ui.time) {
                 nextRepaintTime = long.MaxValue;
+            }
+
             OnRepaint();
             repaintRequired = false;
-            if (rootGui.IsRebuildRequired())
-                rootGui.CalculateState(size.X, pixelsPerUnit);
+            if (rootGui.IsRebuildRequired()) {
+                _ = rootGui.CalculateState(size.X, pixelsPerUnit);
+            }
 
             MainRender();
             surface.Present();
@@ -86,21 +112,30 @@ namespace YAFC.UI {
 
         protected virtual void MainRender() {
             var bgColor = backgroundColor.ToSdlColor();
-            SDL.SDL_SetRenderDrawColor(surface.renderer, bgColor.r, bgColor.g, bgColor.b, bgColor.a);
-            var fullRect = new Rect(default, contentSize);
+            _ = SDL.SDL_SetRenderDrawColor(surface.renderer, bgColor.r, bgColor.g, bgColor.b, bgColor.a);
+            Rect fullRect = new Rect(default, contentSize);
             repaintCount++;
             surface.Clear(rootGui.ToSdlRect(fullRect));
             rootGui.InternalPresent(surface, fullRect, fullRect);
         }
 
-        public IPanel HitTest(Vector2 position) => rootGui.HitTest(position);
-        public void Rebuild() => rootGui.Rebuild();
+        public IPanel HitTest(Vector2 position) {
+            return rootGui.HitTest(position);
+        }
+
+        public void Rebuild() {
+            rootGui.Rebuild();
+        }
 
         public void Repaint() {
-            if (closed)
+            if (closed) {
                 return;
-            if (!Ui.IsMainThread())
+            }
+
+            if (!Ui.IsMainThread()) {
                 throw new NotSupportedException("This should be called from the main thread");
+            }
+
             repaintRequired = true;
         }
 
@@ -118,7 +153,7 @@ namespace YAFC.UI {
             if (window != IntPtr.Zero) {
                 SDL.SDL_RaiseWindow(window);
                 SDL.SDL_RestoreWindow(window);
-                SDL.SDL_SetWindowInputFocus(window);
+                _ = SDL.SDL_SetWindowInputFocus(window);
             }
         }
 
@@ -127,8 +162,9 @@ namespace YAFC.UI {
         public virtual void Minimized() { }
 
         public void SetNextRepaint(long nextRepaintTime) {
-            if (this.nextRepaintTime > nextRepaintTime)
+            if (this.nextRepaintTime > nextRepaintTime) {
                 this.nextRepaintTime = nextRepaintTime;
+            }
         }
 
         public void ShowTooltip(Tooltip tooltip) {
@@ -137,8 +173,7 @@ namespace YAFC.UI {
         }
 
         public void ShowTooltip(ImGui targetGui, Rect target, GuiBuilder builder, float width = 20f) {
-            if (simpleTooltip == null)
-                simpleTooltip = new SimpleTooltip();
+            simpleTooltip ??= new SimpleTooltip();
             simpleTooltip.Show(builder, targetGui, target, width);
             ShowTooltip(simpleTooltip);
 
@@ -150,27 +185,30 @@ namespace YAFC.UI {
         }
 
         public void ShowDropDown(ImGui targetGui, Rect target, GuiBuilder builder, Padding padding, float width = 20f) {
-            if (simpleDropDown == null)
-                simpleDropDown = new SimpleDropDown();
+            simpleDropDown ??= new SimpleDropDown();
             simpleDropDown.SetPadding(padding);
             simpleDropDown.SetFocus(targetGui, target, builder, width);
             ShowDropDown(simpleDropDown);
         }
 
         private void Build(ImGui gui) {
-            if (closed)
+            if (closed) {
                 return;
+            }
+
             BuildContents(gui);
             if (dropDown != null) {
                 dropDown.Build(gui);
-                if (!dropDown.active)
+                if (!dropDown.active) {
                     dropDown = null;
+                }
             }
             draggingOverlay?.Build(gui);
             if (tooltip != null) {
                 tooltip.Build(gui);
-                if (!tooltip.active)
+                if (!tooltip.active) {
                     tooltip = null;
+                }
             }
         }
 
@@ -180,7 +218,7 @@ namespace YAFC.UI {
         }
 
         internal ImGui.DragOverlay GetDragOverlay() {
-            return draggingOverlay ?? (draggingOverlay = new ImGui.DragOverlay());
+            return draggingOverlay ??= new ImGui.DragOverlay();
         }
     }
 }

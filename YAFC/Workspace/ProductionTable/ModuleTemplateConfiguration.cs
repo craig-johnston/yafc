@@ -16,7 +16,7 @@ namespace YAFC {
 
         public static void Show() {
             Instance.RefreshList();
-            MainScreen.Instance.ShowPseudoScreen(Instance);
+            _ = MainScreen.Instance.ShowPseudoScreen(Instance);
         }
 
         private void RefreshList() {
@@ -35,14 +35,18 @@ namespace YAFC {
                 var copy = JsonUtils.Copy(element, element.owner, null);
                 if (copy != null) {
                     element.owner.RecordUndo().sharedModuleTemplates.Add(copy);
-                    ModuleCustomisationScreen.Show(copy);
+                    ModuleCustomizationScreen.Show(copy);
                 }
             }
-            if (gui.BuildButton(Icon.Edit))
-                ModuleCustomisationScreen.Show(element);
+            if (gui.BuildButton(Icon.Edit)) {
+                ModuleCustomizationScreen.Show(element);
+            }
+
             gui.allocator = RectAllocator.LeftRow;
-            if (element.icon != null)
+            if (element.icon != null) {
                 gui.BuildFactorioObjectIcon(element.icon);
+            }
+
             gui.BuildText(element.name);
         }
 
@@ -55,20 +59,20 @@ namespace YAFC {
             BuildHeader(gui, "Module templates");
             templateList.Build(gui);
             if (pageToDelete != null) {
-                Project.current.RecordUndo().sharedModuleTemplates.Remove(pageToDelete);
+                _ = Project.current.RecordUndo().sharedModuleTemplates.Remove(pageToDelete);
                 RefreshList();
                 pageToDelete = null;
             }
             using (gui.EnterRow(0.5f, RectAllocator.RightRow)) {
                 if (gui.BuildButton("Create", active: newPageName != "")) {
-                    var template = new ProjectModuleTemplate(Project.current) { name = newPageName };
+                    ProjectModuleTemplate template = new ProjectModuleTemplate(Project.current) { name = newPageName };
                     Project.current.RecordUndo().sharedModuleTemplates.Add(template);
                     newPageName = "";
-                    ModuleCustomisationScreen.Show(template);
+                    ModuleCustomizationScreen.Show(template);
                     RefreshList();
                 }
 
-                gui.RemainingRow().BuildTextInput(newPageName, out newPageName, "Create new template");
+                _ = gui.RemainingRow().BuildTextInput(newPageName, out newPageName, "Create new template");
             }
         }
     }
