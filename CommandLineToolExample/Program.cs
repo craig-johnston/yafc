@@ -1,10 +1,10 @@
 ﻿using System;
-using YAFC;
-using YAFC.Model;
-using YAFC.Parser;
+using Yafc;
+using Yafc.Model;
+using Yafc.Parser;
 
 namespace CommandLineToolExample {
-    // If you wish to embed yafc or make a command-line tool using YAFC, here is an example on how to do that
+    // If you wish to embed YAFC or make a command-line tool using YAFC, here is an example on how to do that
     // However, I can't make any promises about not changing signatures
     public static class Program {
         public static void Main(string[] args) {
@@ -12,7 +12,6 @@ namespace CommandLineToolExample {
                 Console.WriteLine("Pass FactorioData path as command-line argument");
                 return;
             }
-            YafcLib.Init();
             YafcLib.RegisterDefaultAnalysis(); // Register analysis to get cost, milestones, accessibility, etc information. Skip if you just need data. 
             string factorioPath = args[0];
             ErrorCollector errorCollector = new ErrorCollector();
@@ -22,7 +21,7 @@ namespace CommandLineToolExample {
                 // Empty project path loads default project (with one empty page).
                 // Project is irrelevant if you just need data, but you need it to perform sheet calculations
                 // Set to not render any icons
-                project = FactorioDataSource.Parse(factorioPath, "", "", false, new ConsoleProgressReport(), errorCollector, "en", false);
+                project = FactorioDataSource.Parse(factorioPath, "", "", false, false, new ConsoleProgressReport(), errorCollector, "en", false);
             }
             catch (Exception ex) {
                 // Critical errors that make project un-loadable will be thrown as exceptions

@@ -1,8 +1,95 @@
+// The purpose of the changelog is to provide a concise overview of what was changed.
+// The purpose of the format is to make the changelog more organized.
+// Version: x.y.z
+// Date: Month Day Year of the release
+//     Each section exists only if there is something in it for this release.
+//     Features:
+//         First go new features. They usually start with "Add". If they mostly add things, they go to this part.
+//         Then go the changes in the existing behavior. They usually start with "Update".
+//     Bugfixes:
+//         Bugfixes go there.
+//     Internal changes: 
+//         Changes to the code that do not affect the behavior of the program.
 ----------------------------------------------------------------------------------------------------------------------
-Version: 0.6.3
-Date: TBA
+Version 0.7.3
+Date: soon
+    Features:
+        - Add the option to specify how many beacons, with what modules, should be applied on a per-building-type
+          basis, in addition to the global and per-recipe-row settings.
+        - Allow adding technologies to the tables to produce research units.
+        - Add settings for research speed and productivity bonuses, to correctly calculate lab speed and counts.
+    Bugfixes:
+        - Fix PageSearch scrollbar not working.
+        - Refresh the milestones display after adding or removing milestones.
+    Internal changes:
+        - Finish the namespace rename from YAFC to Yafc.
+----------------------------------------------------------------------------------------------------------------------
+Version 0.7.2
+Date: June 23rd 2024
+    Features:
+        - Add several right-click and keyboard shortcuts, notably Enter/Return to close most dialogs.
+        - Add UI rebuilding itself on resize.
+        - When opening the main window, use the same size it was when it was last closed.
+        - Use calculated width for first column of Summary page.
+    Bugfixes:
+        - Fix that some pages couldn't be deleted.
+        - Fix that returning to the Welcome Screen could break the panels in the main window.
+        - Make horizontal scrollbar clickable/draggable.
+        - Scroll down/up exactly one page with page down/up keys
+        - Fix saving and loading errors with legacy production summaries.
+        - YAFC no longer shows the paths of the releaser in stack traces.
+    Internal changes:
+        - Initial window size is now separate from the minimal window size.
+----------------------------------------------------------------------------------------------------------------------
+Version: 0.7.1
+Date: June 12th 2024
+    Features:
+        - Allow configuring the size of icons that have backgrounds, since the icon may cover the entire
+          background area.
+        - Update the detection of special recipes and items, to detect stacking from Deadlock's Beltboxes, caging
+          from Pyanodon, and pressurization from Pressurized Fluids.
+          Also detect cases where one direction is required, (e.g. Some Nullius science packs are manufactured in
+          stacks) and do not consider the required recipe special. (The unstacking recipe, in this case)
+          As before, special items/recipes are shown at the end of lists and are not selected when ctrl-clicking.
+    Bugfixes:
+        - Display spent fuel items in the production table and link summaries.
+        - Fix error when switching items in NEIE with middle-click
+        - Fix missing window contents on Linux/Xorg.
+        - Fix an exception when hovering over recipes in certain pathological cases.
+    Internal changes:
+        - Enable nullable annotations to address the IDE warnings.
+----------------------------------------------------------------------------------------------------------------------
+Version: 0.7.0
+Date: May 25th 2024
+    Features:
+        - Add the option to specify a number of belts of production, and to specify per-second/minute/hour
+          production regardless of the current display setting.
+        - When searching in the page list, allow searching in page contents as well as in page names.
+        - Allow the user to select whether catalysts should be considered produced and consumed by the recipes that
+          use them. (e.g. Does coal liquefaction consume heavy oil?)
     Changes:
-        - Allow selecting multiple object with CTRL-click in places it makes sense.
+        - Add a help message and proper handling for command line arguments
+        - Removed default pollution cost from calculation. Added a setting to customize pollution cost.
+        - Add fuel consumption recipe for products
+        - Fix list displays below search boxes. If necessary, they now scroll up until items are visible.
+        - Fix the milestones display and the milestones editor displaying different milestones.
+        - Fix the NEI Explorer not always reflecting milestone unlocks and changed accessibility flags.
+----------------------------------------------------------------------------------------------------------------------
+Version: 0.6.4
+Date: April 16th 2024
+    Changes:
+        - Tagged recipe-rows are now colored in the color of the tag.
+        - Rows with errors are now more visible.
+----------------------------------------------------------------------------------------------------------------------
+Version: 0.6.3-RC2
+Date: April 11th 2024
+    Features:
+        - Allow selecting multiple items with CTRL-click where it makes sense.
+    Fixes:
+        - YAFC no longer crashes with flib 0.14.
+        - YAFC no longer crashes on a fresh install.
+        - The Release Candidates (RC) bring confusion to versioning, so they are no longer used. 
+          The next version after 0.6.3-RC2 will be 0.6.4.
 ----------------------------------------------------------------------------------------------------------------------
 Version: 0.6.2
 Date: March 2024

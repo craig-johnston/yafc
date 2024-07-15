@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <RootNamespace>Yafc.Model</RootNamespace>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Google.OrTools" Version="9.10.4067" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Yafc.UI\Yafc.UI.csproj" />
+    </ItemGroup>
+
+</Project>

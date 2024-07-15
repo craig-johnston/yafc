@@ -44,10 +44,10 @@ dotnet_style_qualification_for_event = false:suggestion
 dotnet_style_predefined_type_for_locals_parameters_members = true:suggestion
 dotnet_style_predefined_type_for_member_access = true:suggestion
 # Parentheses preferences
-dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity:suggestion
-dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:suggestion
-dotnet_style_parentheses_in_other_binary_operators = always_for_clarity:suggestion
-dotnet_style_parentheses_in_other_operators = always_for_clarity:suggestion
+dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity:none
+dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:none
+dotnet_style_parentheses_in_other_binary_operators = always_for_clarity:none
+dotnet_style_parentheses_in_other_operators = always_for_clarity:none
 # Modifier preferences
 dotnet_style_require_accessibility_modifiers = for_non_interface_members:suggestion
 dotnet_style_readonly_field = true:suggestion
@@ -72,6 +72,7 @@ dotnet_style_prefer_conditional_expression_over_return = false:none
 ###############################
 # Style Definitions
 dotnet_naming_style.pascal_case_style.capitalization             = pascal_case
+dotnet_naming_style.camel_case_style.capitalization              = camel_case
 # Use PascalCase for constant fields
 dotnet_naming_rule.constant_fields_should_be_pascal_case.severity = suggestion
 dotnet_naming_rule.constant_fields_should_be_pascal_case.symbols  = constant_fields
@@ -79,6 +80,12 @@ dotnet_naming_rule.constant_fields_should_be_pascal_case.style    = pascal_case_
 dotnet_naming_symbols.constant_fields.applicable_kinds            = field
 dotnet_naming_symbols.constant_fields.applicable_accessibilities  = *
 dotnet_naming_symbols.constant_fields.required_modifiers          = const
+# Use camel case for local variable
+dotnet_naming_rule.use_camel_case_rule.symbols = use_camel_case
+dotnet_naming_rule.use_camel_case_rule.style = camel_case_style
+dotnet_naming_rule.use_camel_case_rule.severity = suggestion
+dotnet_naming_symbols.use_camel_case.applicable_kinds = parameter,local,local_function
+
 ###############################
 # C# Coding Conventions       #
 ###############################
@@ -89,9 +96,9 @@ csharp_style_var_when_type_is_apparent = false:suggestion
 # For all else, we prefer non-var but don't enforce it 
 csharp_style_var_elsewhere = false:none
 # Expression-bodied members
-csharp_style_expression_bodied_methods = false:suggestion
-csharp_style_expression_bodied_constructors = false:suggestion
-csharp_style_expression_bodied_operators = false:suggestion
+csharp_style_expression_bodied_methods = true:suggestion
+csharp_style_expression_bodied_constructors = true:suggestion
+csharp_style_expression_bodied_operators = true:suggestion
 csharp_style_expression_bodied_properties = true:suggestion
 csharp_style_expression_bodied_indexers = true:suggestion
 csharp_style_expression_bodied_accessors = true:suggestion
@@ -109,6 +116,7 @@ csharp_style_deconstructed_variable_declaration = true:suggestion
 csharp_prefer_simple_default_expression = true:suggestion
 csharp_style_prefer_local_over_anonymous_function = true:suggestion
 csharp_style_inlined_variable_declaration = true:suggestion
+
 ###############################
 # C# Formatting Rules         #
 ###############################
@@ -139,12 +147,20 @@ csharp_space_between_method_call_empty_parameter_list_parentheses = false
 # Wrapping preferences
 csharp_preserve_single_line_statements = true
 csharp_preserve_single_line_blocks = true
+
 ###############################
 # YAFC-CE Code Style          #
 ###############################
+# Suppress "IDE0047: Remove unnecessary parentheses." because parentheses improve readability.
+dotnet_diagnostic.IDE0047.severity = none
+
+# Suppress IDE0052: Remove unread private members.
+# TODO: Unmuting this suggests to delete ProjectPajeView.SearchQuery, which sets off a chain of refactors that need to be tested separately from the code-cleanup PR.
+# Issue link: https://github.com/have-fun-was-taken/yafc-ce/issues/181
+dotnet_diagnostic.IDE0052.severity = none
+
+# Make fixing formatting mandatory.
 dotnet_diagnostic.IDE0055.severity = error
+
 # Disable "IDE0130: Namespace does not match folder structure" because VS Code Cleanup applies it automatically and breaks things.
 dotnet_style_namespace_match_folder = false
-
-# Suppress IDE0047: Remove unnecessary parentheses. Parentheses improve readability.
-dotnet_diagnostic.IDE0047.severity = none
